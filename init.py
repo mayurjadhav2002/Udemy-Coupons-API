@@ -4,8 +4,26 @@ from bs4 import BeautifulSoup as bs
 from urllib.parse import unquote, urlparse
 from pathlib import PurePosixPath
 connection = sqlite3.connect('database.db')
+# using flask_restful
+from flask import Flask, jsonify, render_template, request, url_for, flash, redirect
+from flask_pymongo import PyMongo
 
+import requests
+from bs4 import BeautifulSoup as bs
+import sqlite3
+import json
+import os
+from flask_cors import CORS
 
+# creating the flask app
+app = Flask(__name__)
+
+CORS(app)
+# creating an API object
+app.config["MONGO_URI"] = "mongodb+srv://mayur:mayur@cluster0.zie9piv.mongodb.net/test"
+mongodb_client = PyMongo(app)
+db = mongodb_client.db
+# db.api.delete_many({})
 with open('schema.sql') as f:
     connection.executescript(f.read())
 
@@ -45,9 +63,20 @@ for j in range(1,5):
                     rev_div = soup.findAll("div",attrs={"class":"ui segment"})
                     for i in rev_div:
                         coupon = i.a['href']
-                    cur.execute("INSERT INTO posts (title, content, link, img, date2) VALUES (?, ?,?,?,?)",(title, desc[2:-2],  coupon, img, date))
+                    db.api.insert_one({
+                        'id': k,
+                        'title': title,
+                        'content': desc[2:-2],
+                        'link': coupon,
+                        'img': img,
+                        'date': date
+                    })
+                    print("data inserted")
+                    # cur.execute("INSERT INTO posts (title, content, link, img, date2) VALUES (?, ?,?,?,?)",(title, desc[2:-2],  coupon, img, date))
                 else:
+                    print("connot insert data")
                     pass
+                    
 
             k+=1
 
